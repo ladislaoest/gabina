@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>De la huerta, con amor, de Gabina a tu tenedor</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2e7d32">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <img src="img1.png" alt="Logo de la huerta" class="header-logo">
+                <h1>De la huerta, con amor, de Gabina a tu tenedor</h1>
+            </div>
+            <p id="welcome-message">Fresco, familiar y del huerto a tu mesa</p>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div class="tabs">
+            <button class="tab active" data-tab-name="products">Productos</button>
+            <button class="tab" data-tab-name="cart">Mi Reserva</button>
+            <button class="tab" data-tab-name="admin">Administración</button>
+        </div>
+
+        <div class="notifications-section">
+            <button id="enable-notifications-btn">Activar Notificaciones</button>
+        </div>
+        
+        <div id="products" class="tab-content" style="display: block;">
+            <h2>Productos Disponibles</h2>
+            <div class="products-grid" id="products-list">
+                <p class="loading-message">Cargando productos...</p>
+            </div>
+        </div>
+        
+        <div id="cart" class="tab-content">
+            <h2>Mi Reserva</h2>
+            <div id="cart-items">
+                <!-- Items del carrito -->
+                <p>No hay productos reservados aún.</p>
+            </div>
+            <button id="confirm-reservation-btn" style="margin-top: 20px;">Confirmar Reserva</button>
+        </div>
+        
+        <div id="admin" class="tab-content">
+            <h2>Añadir / Editar Producto</h2>
+            <form class="admin-form" id="add-product-form">
+                <input type="hidden" id="editing-product-id">
+                <input type="text" id="product-name" placeholder="Nombre del producto" required>
+                <textarea id="product-description" placeholder="Descripción"></textarea>
+                <input type="number" id="product-stock" placeholder="Cantidad disponible" required min="0">
+                <input type="text" id="product-unit" placeholder="Unidad (kg, unidades, etc.)" required>
+                <input type="file" id="product-image" accept="image/*">
+                <p>Si no se sube una nueva imagen, se conservará la actual al editar.</p>
+                <button type="submit" id="form-submit-button">Guardar Producto</button>
+                <button type="button" id="cancel-edit-button" style="display: none; background-color: #757575;">Cancelar Edición</button>
+            </form>
+            <hr style="margin: 30px 0;">
+            <h2>Gestionar Productos Existentes</h2>
+            <div class="admin-products-grid" id="admin-products-list">
+                <!-- Admin product list will be rendered here -->
+            </div>
+        </div>
+    </div>
+
+    <div id="video-modal" class="modal">
+        <div class="modal-content">
+            <video id="confirmation-video" width="100%" muted playsinline>
+                <source src="video1.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+            <p style="display: none;">¡Pedido realizado con éxito!</p>
+        </div>
+    </div>
+
+    <!-- Módulo de Supabase para importación -->
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+        window.createClient = createClient;
+    </script>
+
+    <!-- Script principal de la aplicación -->
+    <script src="script.js"></script>
+</body>
+</html>

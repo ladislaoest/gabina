@@ -1,0 +1,21 @@
+{
+    "name": "De la Huerta de Gabina",
+    "short_name": "Gabina",
+    "start_url": "/index.html",
+    "display": "standalone",
+    "background_color": "#f7fcf9",
+    "theme_color": "#2e7d32",
+    "orientation": "portrait-primary",
+    "icons": [
+        {
+            "src": "/img1.png",
+            "type": "image/png",
+            "sizes": "192x192"
+        },
+        {
+            "src": "/img1.png",
+            "type": "image/png",
+            "sizes": "512x512"
+        }
+    ]
+}
