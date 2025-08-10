@@ -198,6 +198,34 @@ h2 {
     background-color: var(--danger);
 }
 
+.admin-list-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.admin-list-item {
+    background-color: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.admin-list-item h4 {
+    margin: 0 0 10px 0;
+    color: var(--primary);
+}
+
+.admin-list-item p {
+    margin: 0 0 5px 0;
+}
+
+.admin-list-item ul {
+    padding-left: 20px;
+    margin: 5px 0 0 0;
+}
+
 input[type="number"] {
     width: 70px;
     padding: 8px;

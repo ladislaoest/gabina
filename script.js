@@ -80,6 +80,7 @@ function openTab(tabName) {
             return;
         }
         displayAdminProducts();
+        loadAdminData(); // Load customers and orders
     }
 
     const tabContents = document.getElementsByClassName('tab-content');
@@ -124,6 +125,85 @@ async function loadProducts() {
         console.error('Error cargando productos:', error.message);
         displayProducts();
     }
+}
+
+async function loadAdminData() {
+    const customerList = document.getElementById('admin-customers-list');
+    const orderList = document.getElementById('admin-orders-list');
+    customerList.innerHTML = '<p class="loading-message">Cargando clientes...</p>';
+    orderList.innerHTML = '<p class="loading-message">Cargando pedidos...</p>';
+
+    const { data: reservations, error } = await supabase
+        .from('reservations')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error("Error cargando datos de admin:", error);
+        customerList.innerHTML = '<p>Error al cargar clientes.</p>';
+        orderList.innerHTML = '<p>Error al cargar pedidos.</p>';
+        return;
+    }
+
+    displayCustomers(reservations);
+    displayOrders(reservations);
+}
+
+function displayCustomers(reservations) {
+    const customerList = document.getElementById('admin-customers-list');
+    customerList.innerHTML = '';
+    
+    const uniqueUsers = new Map();
+    reservations.forEach(res => {
+        if (res.user_id && !uniqueUsers.has(res.user_id)) {
+            uniqueUsers.set(res.user_id, res.user_name || 'Nombre no disponible');
+        }
+    });
+
+    if (uniqueUsers.size === 0) {
+        customerList.innerHTML = '<p>No hay clientes todavía.</p>';
+        return;
+    }
+
+    uniqueUsers.forEach((name, id) => {
+        const customerDiv = document.createElement('div');
+        customerDiv.className = 'admin-list-item';
+        customerDiv.innerHTML = `<p><strong>Nombre:</strong> ${name}</p><p><strong>ID de Usuario:</strong> ${id}</p>`;
+        customerList.appendChild(customerDiv);
+    });
+}
+
+function displayOrders(reservations) {
+    const orderList = document.getElementById('admin-orders-list');
+    orderList.innerHTML = '';
+
+    if (reservations.length === 0) {
+        orderList.innerHTML = '<p>No hay pedidos todavía.</p>';
+        return;
+    }
+
+    reservations.forEach(res => {
+        const orderDiv = document.createElement('div');
+        orderDiv.className = 'admin-list-item';
+        
+        let itemsHtml = '<ul>';
+        if (res.items && res.items.length > 0) {
+            res.items.forEach(item => {
+                itemsHtml += `<li>${item.quantity} ${item.unit || ''} de ${item.name}</li>`;
+            });
+        } else {
+            itemsHtml += '<li>No hay artículos en este pedido.</li>';
+        }
+        itemsHtml += '</ul>';
+
+        orderDiv.innerHTML = `
+            <h4>Pedido del ${new Date(res.created_at).toLocaleString('es-ES')}</h4>
+            <p><strong>Cliente:</strong> ${res.user_name || 'Nombre no disponible'} (ID: ${res.user_id})</p>
+            <p><strong>Estado:</strong> ${res.status || 'desconocido'}</p>
+            <div><strong>Artículos:</strong>${itemsHtml}</div>
+        `;
+        orderList.appendChild(orderDiv);
+    });
 }
 
 function displayProducts() {
