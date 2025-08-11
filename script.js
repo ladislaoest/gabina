@@ -136,7 +136,7 @@ async function loadAdminData() {
     const { data: reservations, error } = await supabase
         .from('reservations')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('date', { ascending: false });
 
     if (error) {
         console.error("Error cargando datos de admin:", error);
@@ -197,7 +197,7 @@ function displayOrders(reservations) {
         itemsHtml += '</ul>';
 
         orderDiv.innerHTML = `
-            <h4>Pedido del ${new Date(res.created_at).toLocaleString('es-ES')}</h4>
+            <h4>Pedido del ${new Date(res.date).toLocaleString('es-ES')}</h4>
             <p><strong>Cliente:</strong> ${res.user_name || 'Nombre no disponible'} (ID: ${res.user_id})</p>
             <p><strong>Estado:</strong> ${res.status || 'desconocido'}</p>
             <div><strong>Artículos:</strong>${itemsHtml}</div>
