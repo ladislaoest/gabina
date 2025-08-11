@@ -348,3 +348,28 @@ button:hover {
         border-radius: 0 0 8px 8px;
     }
 }
+
+/* Specific styles for the username modal if needed, otherwise reuse existing .modal and .modal-content */
+#username-modal .modal-content {
+    max-width: 350px; /* Adjust as needed */
+    text-align: center;
+}
+
+#username-modal h2 {
+    margin-bottom: 20px;
+}
+
+#username-modal input[type="text"] {
+    width: calc(100% - 24px); /* Account for padding */
+    margin-bottom: 15px;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 1rem;
+}
+
+#username-modal button {
+    width: 100%;
+    padding: 12px;
+    font-size: 1.1rem;
+}

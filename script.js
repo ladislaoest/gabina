@@ -55,7 +55,7 @@ async function subscribeToNotifications() {
         return;
     }
 
-    const vapidPublicKey = 'BKNolyiakZwepjuF6X6tTfKLHOlyxn1hHy-FxxKOwyS57zYUALJ4fLHi6G21QwC0aLsJg89PeM7GbLLRx7DqGRzI'; 
+    const vapidPublicKey = 'BDhIwfGYN_yI19ZhRpDCci7yTlWF-CiSW6wHzYW8FC1N9P94V2dl54JjEPZYagd6zolm4Ghgn_-KYEd5AzYQ4Pw'; 
     
     try {
         subscription = await registration.pushManager.subscribe({
@@ -64,6 +64,17 @@ async function subscribeToNotifications() {
         });
 
         console.log('Suscripción exitosa:', subscription);
+
+        // Guardar la suscripción en Supabase
+        const { data, error } = await supabase
+            .from('push_subscriptions')
+            .insert([{ subscription: subscription, user_id: userId }]);
+
+        if (error) {
+            throw error;
+        }
+
+        console.log('Suscripción guardada en la base de datos:', data);
         alert('¡Notificaciones activadas! Ahora recibirás avisos.');
         
     } catch (error) {
@@ -133,19 +144,31 @@ async function loadAdminData() {
     customerList.innerHTML = '<p class="loading-message">Cargando clientes...</p>';
     orderList.innerHTML = '<p class="loading-message">Cargando pedidos...</p>';
 
-    const { data: reservations, error } = await supabase
+    // Fetch users from the new 'users' table
+    const { data: users, error: usersError } = await supabase
+        .from('users')
+        .select('*')
+        .order('user_name', { ascending: true });
+
+    if (usersError) {
+        console.error("Error cargando usuarios:", usersError);
+        customerList.innerHTML = '<p>Error al cargar clientes.</p>';
+        return;
+    }
+
+    // Fetch reservations for orders
+    const { data: reservations, error: reservationsError } = await supabase
         .from('reservations')
         .select('*')
         .order('date', { ascending: false });
 
-    if (error) {
-        console.error("Error cargando datos de admin:", error);
-        customerList.innerHTML = '<p>Error al cargar clientes.</p>';
+    if (reservationsError) {
+        console.error("Error cargando pedidos:", reservationsError);
         orderList.innerHTML = '<p>Error al cargar pedidos.</p>';
         return;
     }
 
-    displayCustomers(reservations);
+    displayCustomers(users); // Pass the fetched users
     displayOrders(reservations);
 }
 
@@ -324,7 +347,7 @@ function removeFromCart(productId) {
 async function confirmReservation() {
     if (cart.length === 0) return;
     try {
-        const { error } = await supabase.rpc('confirm_reservation_and_update_stock', { p_user_id: userId, p_items: cart });
+        const { error } = await supabase.rpc('confirm_reservation_and_update_stock', { p_user_id: userId, p_user_name: username, p_items: cart });
         if (error) throw error;
         console.log('Reserva enviada y stock actualizado.');
         const modal = document.getElementById('video-modal');
@@ -431,15 +454,58 @@ document.addEventListener('DOMContentLoaded', () => {
     userId = localStorage.getItem('huerta-user-id') || `user-${Date.now()}`;
     localStorage.setItem('huerta-user-id', userId);
     username = localStorage.getItem('huerta-username');
-    if (!username) {
-        let tempUsername = prompt('Introduce tu nombre:');
-        while (!tempUsername || tempUsername.trim() === '') {
-            tempUsername = prompt('El nombre no puede estar vacío.');
-        }
-        username = tempUsername;
-        localStorage.setItem('huerta-username', username);
+
+    // Function to show the username modal
+    function showUsernameModal() {
+        const modalHtml = `
+            <div id="username-modal" class="modal">
+                <div class="modal-content">
+                    <h2>Introduce tu nombre</h2>
+                    <input type="text" id="username-input" placeholder="Tu nombre" required>
+                    <button id="submit-username-btn">Continuar</button>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+        const usernameInput = document.getElementById('username-input');
+        const submitUsernameBtn = document.getElementById('submit-username-btn');
+        const usernameModal = document.getElementById('username-modal');
+
+        submitUsernameBtn.addEventListener('click', () => {
+            let tempUsername = usernameInput.value.trim();
+            if (tempUsername === '') {
+                alert('El nombre no puede estar vacío.');
+                return;
+            }
+            username = tempUsername;
+            localStorage.setItem('huerta-username', username);
+            saveUserToSupabase(userId, username); // Save user after getting name
+            document.getElementById('welcome-message').textContent = `Hola, ${username}! Fresco, familiar y del huerto a tu mesa`;
+            usernameModal.style.display = 'none';
+        });
+
+        usernameModal.style.display = 'flex'; // Show the modal
+        usernameInput.focus();
     }
-    document.getElementById('welcome-message').textContent = `Hola, ${username}! Fresco, familiar y del huerto a tu mesa`;
+
+    if (!username) {
+        showUsernameModal();
+    } else {
+        // Guardar o actualizar el usuario en la tabla 'users' de Supabase
+        async function saveUserToSupabase(id, name) {
+            const { data, error } = await supabase
+                .from('users')
+                .upsert({ user_id: id, user_name: name }, { onConflict: 'user_id' });
+            if (error) {
+                console.error('Error al guardar el usuario en Supabase:', error);
+            } else {
+                console.log('Usuario guardado/actualizado en Supabase:', data);
+            }
+        }
+        saveUserToSupabase(userId, username);
+        document.getElementById('welcome-message').textContent = `Hola, ${username}! Fresco, familiar y del huerto a tu mesa`;
+    }
 
     loadProducts();
     updateCartDisplay();
